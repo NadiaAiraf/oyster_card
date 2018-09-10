@@ -1,11 +1,23 @@
 require 'oyster_card'
+require 'pry'
 
 describe OysterCard do
 
   let(:earls_court) { double :earls_court }
   let(:aldgate) { double :aldgate }
+  let(:journey) { double :journey }
+  let(:mock_journey) { double :mock_journey }
+  let(:mock_station) { double :mock_station }
+  subject { described_class.new(journey_record: journey, station_type: mock_station) }
 
   before(:each) do
+    allow(journey).to receive(:new).and_return mock_journey
+    allow(mock_journey).to receive(:set_start)
+    allow(mock_journey).to receive(:set_end)
+    allow(mock_journey).to receive(:fare).and_return 2
+    allow(mock_journey).to receive(:start_point).and_return earls_court
+    allow(mock_journey).to receive(:end_point).and_return aldgate
+
     allow(earls_court).to receive(:name).and_return("earls court")
     allow(aldgate).to receive(:name).and_return("aldgate")
     subject.top_up(20)
@@ -51,7 +63,7 @@ describe OysterCard do
 
     it 'should store the entry station in start_point' do
       subject.touch_in(earls_court)
-      expect(subject.start_point).to eq earls_court
+      expect(subject.in_journey.start_point).to eq earls_court
     end
 
     it "should raise an error if the card balance is below minimum fare" do
@@ -71,7 +83,7 @@ describe OysterCard do
 
     it "takes off the correct fare when they touch out" do
       subject.touch_in(earls_court)
-      expect { subject.touch_out(aldgate) }.to change { subject.balance }.by(- subject.minimum_fare)
+      expect { subject.touch_out(aldgate) }.to change { subject.balance }.by(-2)
     end
 
     it "makes an entry station nil when we touch out" do
@@ -83,7 +95,7 @@ describe OysterCard do
     it 'puts the journey details into the journey history when they touch out' do
       subject.touch_in(earls_court)
       subject.touch_out(aldgate)
-      expect(subject.journey_history).to eq [{ start: "earls court", end: "aldgate" }]
+      expect(subject.journey_history).to eq [mock_journey]
     end
   end
 

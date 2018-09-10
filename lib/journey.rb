@@ -1,5 +1,5 @@
 class Journey
-  attr_reader :fare
+  attr_reader :fare, :end_point
 
   def initialize
     @start_point = nil
@@ -8,12 +8,12 @@ class Journey
   end
 
   def set_start(station)
-    fail "start station is set" unless @start_point
+    fail "start station is set" if @start_point
     @start_point = station
   end
 
   def set_end(station)
-    fail "end point is set" unless @end_point
+    fail "end point is set" if @end_point
     @end_point = station
   end
 
