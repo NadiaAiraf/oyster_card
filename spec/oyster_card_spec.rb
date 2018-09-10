@@ -1,13 +1,20 @@
 require 'oyster_card'
 
 describe OysterCard do
-
-  it 'should respond to balance queries' do
-    expect(subject.balance).to eq 0
+  before(:each) do
+    subject.top_up(20)
   end
+  context "on instantiation" do
+    it 'should have an empty journey history' do
+      expect(subject.journey_history).to eq []
+    end
 
-  it 'should be able to change the maximum balance' do
+    it 'should respond to balance queries' do
+      expect(subject.balance).to eq 20
+    end
 
+    xit 'should be able to change the maximum balance' do
+    end
   end
 
   context "when the user calls top_up" do
@@ -35,9 +42,15 @@ describe OysterCard do
     #   expect(subject.in_journey?).to eq true
     # end
 
+    it 'should store the entry station in start_point' do
+      subject.touch_in("earls court")
+      expect(subject.start_point).to eq "earls court"
+    end
+
     it "should raise an error if the card balance is below minimum fare" do
-      message = "Balance too low, minimum fare: £#{subject.minimum_fare}"
-      expect { subject.touch_in }.to raise_error message
+      oyster = OysterCard.new
+      message = "Balance too low, minimum fare: £#{oyster.minimum_fare}"
+      expect { oyster.touch_in('earls court') }.to raise_error message
     end
   end
 
@@ -50,11 +63,21 @@ describe OysterCard do
     # end
 
     it "takes off the correct fare when they touch out" do
-      subject.top_up(10)
-      subject.touch_in
-      expect { subject.touch_out }.to change{ subject.balance }.by(- subject.minimum_fare)
+      subject.touch_in('earls court')
+      expect { subject.touch_out('aldgate') }.to change { subject.balance }.by(- subject.minimum_fare)
+    end
+
+    it "makes an entry station nil when we touch out" do
+      subject.touch_in("earls court")
+      subject.touch_out("aldgate")
+      expect(subject.start_point).to eq nil
+    end
+
+    it 'puts the journey details into the journey history when they touch out' do
+      subject.touch_in("earls court")
+      subject.touch_out("aldgate")
+      expect(subject.journey_history).to eq [{start: "earls court", end: "aldgate"}]
     end
   end
-
 
 end
