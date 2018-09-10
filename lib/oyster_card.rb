@@ -1,3 +1,5 @@
+require 'journey'
+
 class OysterCard
   DEFAULT_MAXIMUM = 90
   DEFAULT_FARE = 1
@@ -7,7 +9,7 @@ class OysterCard
                  minimum_fare = DEFAULT_FARE)
     @balance = 0
     @maximum_balance = maximum_balance
-    @in_journey = false
+    @in_journey = nil
     @minimum_fare = minimum_fare
     @start_point = nil
     @journey_history = []
@@ -19,16 +21,15 @@ class OysterCard
   end
 
   def touch_in(station)
+    check_if_in_journey
     fail "Balance too low, minimum fare: £#{minimum_fare}" if balance_too_low?
-    @start_point = station
-    @in_journey = true
+    @in_journey = Journey.new.set_start(station)
   end
 
   def touch_out(station)
-    deduct(minimum_fare)
-    store_journey(station)
-    clear_start_point
-    @in_journey = false
+    @in_journey.set_end(station)
+    deduct(@in_journey.fare)
+    store_journey
   end
 
   private
@@ -50,10 +51,15 @@ class OysterCard
   end
 
   def store_journey(station)
-    @journey_history << { start: start_point.name, end: station.name }
+    @journey_history << @in_journey
+    @in_journey = nil
   end
 
   def clear_start_point
     @start_point = nil
+  end
+
+  def check_if_in_journey
+
   end
 end
