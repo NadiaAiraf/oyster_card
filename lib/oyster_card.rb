@@ -50,7 +50,7 @@ class OysterCard
   end
 
   def store_journey(station)
-    @journey_history << { start: start_point, end: station }
+    @journey_history << { start: start_point.name, end: station.name }
   end
 
   def clear_start_point

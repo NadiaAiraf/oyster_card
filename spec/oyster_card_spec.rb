@@ -1,9 +1,16 @@
 require 'oyster_card'
 
 describe OysterCard do
+
+  let(:earls_court) { double :earls_court }
+  let(:aldgate) { double :aldgate }
+
   before(:each) do
+    allow(earls_court).to receive(:name).and_return("earls court")
+    allow(aldgate).to receive(:name).and_return("aldgate")
     subject.top_up(20)
   end
+
   context "on instantiation" do
     it 'should have an empty journey history' do
       expect(subject.journey_history).to eq []
@@ -43,8 +50,8 @@ describe OysterCard do
     # end
 
     it 'should store the entry station in start_point' do
-      subject.touch_in("earls court")
-      expect(subject.start_point).to eq "earls court"
+      subject.touch_in(earls_court)
+      expect(subject.start_point).to eq earls_court
     end
 
     it "should raise an error if the card balance is below minimum fare" do
@@ -63,20 +70,20 @@ describe OysterCard do
     # end
 
     it "takes off the correct fare when they touch out" do
-      subject.touch_in('earls court')
-      expect { subject.touch_out('aldgate') }.to change { subject.balance }.by(- subject.minimum_fare)
+      subject.touch_in(earls_court)
+      expect { subject.touch_out(aldgate) }.to change { subject.balance }.by(- subject.minimum_fare)
     end
 
     it "makes an entry station nil when we touch out" do
-      subject.touch_in("earls court")
-      subject.touch_out("aldgate")
+      subject.touch_in(earls_court)
+      subject.touch_out(aldgate)
       expect(subject.start_point).to eq nil
     end
 
     it 'puts the journey details into the journey history when they touch out' do
-      subject.touch_in("earls court")
-      subject.touch_out("aldgate")
-      expect(subject.journey_history).to eq [{start: "earls court", end: "aldgate"}]
+      subject.touch_in(earls_court)
+      subject.touch_out(aldgate)
+      expect(subject.journey_history).to eq [{ start: "earls court", end: "aldgate" }]
     end
   end
 
