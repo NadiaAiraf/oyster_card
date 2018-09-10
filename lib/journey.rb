@@ -21,7 +21,7 @@ class Journey
     @fare = 5
   end
 
-  def set_fare(zone_start,zone_end)
-    @fare = 2
+  def set_fare
+    @fare = 2 + @end_point.zone + @start_point.zone
   end
 end

@@ -1,4 +1,4 @@
-require 'journey'
+require './journey_log'
 
 class OysterCard
   DEFAULT_MAXIMUM = 90
@@ -7,15 +7,14 @@ class OysterCard
 
   def initialize(maximum_balance: DEFAULT_MAXIMUM,
                  minimum_fare: DEFAULT_FARE,
-                 journey_record: Journey,
-                 station_type: Station)
+                 station_type: Station,
+                 journey_log: JourneyLog.new)
     @balance = 0
     @maximum_balance = maximum_balance
     @in_journey = nil
     @minimum_fare = minimum_fare
-    @start_point = nil
-    @journey_history = []
-    @journey_record = journey_record
+    @journey_log = journey_log
+    @station_type = station_type
   end
 
   def top_up(value)
@@ -24,16 +23,16 @@ class OysterCard
   end
 
   def touch_in(station)
-    check_if_in_journey if @in_journey != nil
+    check_if_in_journey if @journey_log.current_journey
     fail "Balance too low, minimum fare: £#{minimum_fare}" if balance_too_low?
-    @in_journey = @journey_record.new
-    @in_journey.set_start(station)
+    @journey_log.start(station)
   end
 
   def touch_out(station)
-    @in_journey.set_end(station)
-    deduct(@in_journey.fare)
-    store_journey
+    @journey_log.finish(station)
+    @journey_log.current_journey.set_fare if no_fare?
+    deduct(@journey_log.current_journey.fare)
+    @journey_log.store_journey
   end
 
   private
@@ -60,9 +59,13 @@ class OysterCard
   end
 
   def check_if_in_journey
-    if @in_journey.end_point == nil
-      @in_journey.apply_penalty
-      touch_out(station_type.new("Penalty fare", -1))
+    if @journey_log.current_journey.end_point == nil
+      @journey_log.current_journey.apply_penalty
+      touch_out(@station_type.new("Penalty fare", -1))
     end
+  end
+
+  def no_fare?
+    @journey_log.current_journey.fare == nil
   end
 end
